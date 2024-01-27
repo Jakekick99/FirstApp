@@ -131,6 +131,7 @@ function App(): React.JSX.Element {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    Geolocation.requestAuthorization()
     Geolocation.getCurrentPosition(info => console.log(info));
     // (async() =>{
     //   let {status} = await Location.requestForegroundPermissionsAsync()
