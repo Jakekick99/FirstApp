@@ -122,26 +122,49 @@ import React, {useState, useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {View, ActivityIndicator, StyleSheet} from 'react-native';
 import Tabs from './src/components/Tabs';
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation, {
+  GeolocationResponse,
+} from '@react-native-community/geolocation';
 
 function App(): React.JSX.Element {
   const [loading, setLoading] = useState(true);
-  const [locationPermission, setLocationPermission] = useState(null);
-  const [location, setLocation] = useState(null);
-  const [error, setError] = useState(null);
+  const [location, setLocation] = useState<GeolocationResponse | null>(null);
+  const [error, setError] = useState(String);
 
   useEffect(() => {
-    Geolocation.requestAuthorization()
-    Geolocation.getCurrentPosition(info => console.log(info));
-    // (async() =>{
-    //   let {status} = await Location.requestForegroundPermissionsAsync()
-    //   if(status !== 'granted'){
-    //     setError("Permission to access location is not given")
-    //     return
-    //   }
-    //   const location = await Location.getCurrentPositionAsync({})
-    //   setLocation(location)
-    // })
+    (async () => {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          Geolocation.requestAuthorization(
+            // Success callback
+            () => {
+              console.log('Location permission request successful');
+              Geolocation.getCurrentPosition(
+                info => {
+                  console.log(info);
+                  setLocation(info);
+                },
+                locationError => {
+                  console.log(locationError);
+                },
+                {
+                  enableHighAccuracy: true,
+                },
+              );
+              resolve();
+            },
+            // Error callback
+            locationReqError => {
+              reject(locationReqError);
+            },
+          );
+        });
+      } catch (locationReqError) {
+        // Handle errors if needed
+        console.error('Location permission request failed:', locationReqError);
+        setError('Permission to location was denied');
+      }
+    })();
   }, []);
 
   if (loading) {
