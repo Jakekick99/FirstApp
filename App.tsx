@@ -133,7 +133,7 @@ function App(): React.JSX.Element {
   const [error, setError] = useState(String);
 
   useEffect(() => {
-    console.log(`The test kys is: ${TEST_KEY}`);
+    console.log(`The test key is: ${TEST_KEY}`);
     (async () => {
       try {
         await new Promise<void>((resolve, reject) => {
