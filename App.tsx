@@ -125,6 +125,7 @@ import Tabs from './src/components/Tabs';
 import Geolocation, {
   GeolocationResponse,
 } from '@react-native-community/geolocation';
+import {TEST_KEY} from '@env';
 
 function App(): React.JSX.Element {
   const [loading, setLoading] = useState(true);
@@ -132,6 +133,7 @@ function App(): React.JSX.Element {
   const [error, setError] = useState(String);
 
   useEffect(() => {
+    console.log(`The test kys is: ${TEST_KEY}`);
     (async () => {
       try {
         await new Promise<void>((resolve, reject) => {
