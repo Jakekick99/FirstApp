@@ -123,17 +123,34 @@ import {NavigationContainer} from '@react-navigation/native';
 import {View, ActivityIndicator, StyleSheet} from 'react-native';
 import Tabs from './src/components/Tabs';
 import Geolocation, {
+  GeolocationError,
   GeolocationResponse,
 } from '@react-native-community/geolocation';
-import {TEST_KEY} from '@env';
+import {WEATHER_API_KEY} from '@env';
 
 function App(): React.JSX.Element {
   const [loading, setLoading] = useState(true);
-  const [location, setLocation] = useState<GeolocationResponse | null>(null);
-  const [error, setError] = useState(String);
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [weather, setWeather] = useState();
+  const [latitude, setLatitude] = useState<number | null>(-1);
+  const [longitude, setLongitude] = useState<number | null>(-1);
+
+  const fetchWeatherData = async () => {
+    try {
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${WEATHER_API_KEY}`,
+      );
+      const data = await response.json();
+      setWeather(data);
+      setLoading(false);
+    } catch (fetchError) {
+      setError('Could not fetch Weather data:' + fetchError);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    console.log(`The test key is: ${TEST_KEY}`);
     (async () => {
       try {
         await new Promise<void>((resolve, reject) => {
@@ -144,7 +161,8 @@ function App(): React.JSX.Element {
               Geolocation.getCurrentPosition(
                 info => {
                   console.log(info);
-                  setLocation(info);
+                  setLatitude(info.coords.latitude);
+                  setLongitude(info.coords.longitude);
                 },
                 locationError => {
                   console.log(locationError);
@@ -156,18 +174,21 @@ function App(): React.JSX.Element {
               resolve();
             },
             // Error callback
-            locationReqError => {
+            (locationReqError: GeolocationError) => {
               reject(locationReqError);
             },
           );
         });
-      } catch (locationReqError) {
-        // Handle errors if needed
-        console.error('Location permission request failed:', locationReqError);
-        setError('Permission to location was denied');
+        await fetchWeatherData();
+        console.log('Latitude:' + latitude);
+        console.log('Longitude:' + longitude);
+        console.log(weather);
+      } catch (err) {
+        // Handle errors if
+        console.error('Location permission request failed:', err);
       }
     })();
-  }, []);
+  }, [latitude, longitude]);
 
   if (loading) {
     return (
